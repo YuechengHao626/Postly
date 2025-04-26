@@ -1,0 +1,13 @@
+db.sqlite3
+
+.venv
+
+.env
+
+.env.local
+
+.env.production
+
+.env.development
+
+__pycache__/
