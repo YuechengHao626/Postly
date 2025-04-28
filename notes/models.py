@@ -16,10 +16,19 @@ class User(AbstractUser):
         default='user',
         null=False
     )
-    is_banned = models.BooleanField(default=False)
-    ban_reason = models.TextField(null=True, blank=True)
-    banned_at = models.DateTimeField(null=True, blank=True)
+    is_banned = models.BooleanField(default=False, help_text='Global ban status, can only be set by super admin')
+    ban_reason = models.TextField(null=True, blank=True, help_text='Reason for global ban')
+    banned_at = models.DateTimeField(null=True, blank=True, help_text='When the global ban was applied')
     created_at = models.DateTimeField(default=timezone.now, null=False)
+
+    def is_banned_in_subforum(self, subforum):
+        """
+        Check if user is banned in a specific subforum
+        """
+        return self.is_banned or self.subforum_bans.filter(
+            subforum=subforum,
+            is_active=True
+        ).exists()
 
     class Meta:
         db_table = 'users'
@@ -171,3 +180,31 @@ class Vote(models.Model):
     class Meta:
         db_table = 'votes'
         unique_together = ('user', 'target_type', 'target_id')
+
+class SubForumBan(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subforum_bans',
+        null=False
+    )
+    subforum = models.ForeignKey(
+        SubForum,
+        on_delete=models.CASCADE,
+        related_name='user_bans',
+        null=False
+    )
+    banned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='issued_bans',
+        null=True
+    )
+    reason = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now, null=False)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'subforum_bans'
+        unique_together = ('user', 'subforum')
