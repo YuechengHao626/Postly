@@ -2,7 +2,9 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import SubForum, Post, Comment
+from django.utils import timezone
+from datetime import timedelta
+from .models import SubForum, Post, Comment, SubForumBan
 
 User = get_user_model()
 
@@ -154,4 +156,84 @@ class TestComment(TestCase):
             'reply_to_user_id': 9999  # 不存在的用户ID
         }
         response = self.client.post('/api/comments/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST) 
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_globally_banned_user_cannot_comment(self):
+        """Test that globally banned users cannot create comments"""
+        # Ban the comment user
+        self.comment_user.is_banned = True
+        self.comment_user.ban_reason = 'Test ban'
+        self.comment_user.banned_at = timezone.now()
+        self.comment_user.save()
+
+        # Try to create a comment with banned user
+        self.client.force_authenticate(user=self.comment_user)
+        data = {
+            'post_id': self.test_post.id,
+            'content': 'Comment from banned user'
+        }
+        response = self.client.post('/api/comments/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('you are banned from posting', response.data['detail'].lower())
+
+    def test_subforum_banned_user_cannot_comment(self):
+        """Test that users banned in a subforum cannot comment in that subforum"""
+        # Create a subforum ban
+        SubForumBan.objects.create(
+            user=self.comment_user,
+            subforum=self.subforum,
+            banned_by=self.post_author,  # Using post_author as the banner for this test
+            reason='Test subforum ban',
+            expires_at=timezone.now() + timedelta(days=7),
+            is_active=True
+        )
+
+        # Try to create a comment in the banned subforum
+        self.client.force_authenticate(user=self.comment_user)
+        data = {
+            'post_id': self.test_post.id,
+            'content': 'Comment in banned subforum'
+        }
+        response = self.client.post('/api/comments/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('you are banned from posting in this subforum', response.data['detail'].lower())
+
+    def test_subforum_ban_does_not_affect_other_subforums(self):
+        """Test that being banned in one subforum doesn't affect commenting in other subforums"""
+        # Create another subforum and post
+        other_subforum = SubForum.objects.create(
+            name='Other Forum',
+            description='Other Description',
+            created_by=self.post_author
+        )
+        other_post = Post.objects.create(
+            title='Other Post',
+            content='Other Content',
+            author=self.post_author,
+            sub_forum=other_subforum
+        )
+
+        # Ban user in the first subforum
+        SubForumBan.objects.create(
+            user=self.comment_user,
+            subforum=self.subforum,
+            banned_by=self.post_author,
+            reason='Test subforum ban',
+            expires_at=timezone.now() + timedelta(days=7),
+            is_active=True
+        )
+
+        # Try to comment in the other subforum
+        self.client.force_authenticate(user=self.comment_user)
+        data = {
+            'post_id': other_post.id,
+            'content': 'Comment in other subforum'
+        }
+        response = self.client.post('/api/comments/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify user still cannot comment in the banned subforum
+        data['post_id'] = self.test_post.id
+        response = self.client.post('/api/comments/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn('you are banned from posting in this subforum', response.data['detail'].lower()) 

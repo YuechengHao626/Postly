@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import User, SubForum, Post, Comment, Vote
+from .models import User, SubForum, Post, Comment, Vote, SubForumBan
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -63,4 +63,59 @@ class VoteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Force value to be 'like'
         validated_data['value'] = 'like'
-        return super().create(validated_data) 
+        return super().create(validated_data)
+
+class GlobalBanSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    action = serializers.ChoiceField(choices=['ban', 'unban'])
+    reason = serializers.CharField(required=False, allow_blank=True)
+
+class SubForumBanSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    subforum_id = serializers.IntegerField()
+    duration_days = serializers.IntegerField(min_value=1)
+    reason = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, data):
+        """
+        Validate data and check role hierarchy
+        """
+        try:
+            target_user = User.objects.get(id=data['user_id'])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Target user not found")
+
+        try:
+            SubForum.objects.get(id=data['subforum_id'])
+        except SubForum.DoesNotExist:
+            raise serializers.ValidationError("Subforum not found")
+
+        # Check role hierarchy
+        request = self.context.get('request')
+        if request and request.user:
+            role_hierarchy = {
+                'user': 0,
+                'moderator': 1,
+                'subforum_admin': 2,
+                'super_admin': 3
+            }
+            banner_role = role_hierarchy.get(request.user.role, 0)
+            target_role = role_hierarchy.get(target_user.role, 0)
+
+            if banner_role <= target_role:
+                raise serializers.ValidationError(
+                    "You cannot ban users with equal or higher privileges"
+                )
+
+        return data
+
+class SubForumBanDetailSerializer(serializers.ModelSerializer):
+    banned_by_username = serializers.CharField(source='banned_by.username', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = SubForumBan
+        fields = ['id', 'user', 'user_username', 'subforum', 'banned_by', 
+                 'banned_by_username', 'reason', 'is_active', 'created_at', 
+                 'expires_at']
+        read_only_fields = ['id', 'created_at'] 

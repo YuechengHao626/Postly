@@ -3,8 +3,9 @@ from rest_framework import viewsets, serializers
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from ..serializers import PostSerializer, CommentSerializer
-from ..models import Post, SubForum, Comment
+from ..models import Post, SubForum, Comment, SubForumBan
 
 class PostViewSet(viewsets.ModelViewSet):
     """
@@ -22,6 +23,10 @@ class PostViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
+        # 检查用户是否被全局封禁
+        if self.request.user.is_banned:
+            raise PermissionDenied('You are banned from posting.')
+            
         # 从请求数据中获取子论坛ID
         subforum_id = self.request.data.get('subforum_id')
         if not subforum_id:
@@ -29,6 +34,16 @@ class PostViewSet(viewsets.ModelViewSet):
         
         # 获取子论坛对象
         subforum = get_object_or_404(SubForum, id=subforum_id)
+        
+        # 检查用户是否被子论坛封禁
+        subforum_ban = SubForumBan.objects.filter(
+            user=self.request.user,
+            subforum=subforum,
+            is_active=True
+        ).first()
+        
+        if subforum_ban:
+            raise PermissionDenied('You are banned from posting in this subforum.')
         
         # 创建帖子，设置作者和子论坛
         serializer.save(
