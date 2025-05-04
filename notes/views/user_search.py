@@ -1,10 +1,8 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.pagination import PageNumberPagination
-from django.contrib.auth import get_user_model
-from .serializers import UserSearchSerializer
-
-User = get_user_model()
+from ..models import User
+from ..serializers import UserSearchSerializer
 
 class UserSearchPagination(PageNumberPagination):
     page_size = 10
@@ -12,6 +10,10 @@ class UserSearchPagination(PageNumberPagination):
     max_page_size = 100
 
 class UserSearchView(generics.ListAPIView):
+    """
+    用户搜索视图
+    支持通过用户名搜索用户，并返回分页结果
+    """
     serializer_class = UserSearchSerializer
     permission_classes = [AllowAny]
     pagination_class = UserSearchPagination

@@ -137,4 +137,10 @@ class SubForumSearchSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'created_by', 'created_at', 'post_count')
     
     def get_post_count(self, obj):
-        return obj.posts.count() 
+        return obj.posts.count()
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'role', 'created_at']
+        read_only_fields = fields  # 所有字段都是只读的 

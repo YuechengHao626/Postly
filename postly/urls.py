@@ -16,10 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from .views import UserSearchView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('notes.urls')),  # 包含 notes 应用的 URLs
-    path('api/users/search/', UserSearchView.as_view(), name='user-search'),
 ]

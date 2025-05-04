@@ -8,6 +8,7 @@ from .views.comment import CommentViewSet
 from .views.vote import VoteCreateAPIView
 from .views.ban import global_ban_user, subforum_ban_user, subforum_unban_user
 from .views.search import PostSearchView, SubForumSearchView
+from .views.user_search import UserSearchView
 
 router = DefaultRouter()
 router.register(r'api/subforums', SubForumViewSet)
@@ -25,4 +26,5 @@ urlpatterns = [
     path('api/moderator/unban/', subforum_unban_user, name='subforum-unban-user'),
     path('api/search/posts/', PostSearchView.as_view(), name='post-search'),
     path('api/search/subforums/', SubForumSearchView.as_view(), name='subforum-search'),
+    path('api/search/users/', UserSearchView.as_view(), name='user-search'),
 ] 
