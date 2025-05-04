@@ -118,4 +118,23 @@ class SubForumBanDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'user_username', 'subforum', 'banned_by', 
                  'banned_by_username', 'reason', 'is_active', 'created_at', 
                  'expires_at']
-        read_only_fields = ['id', 'created_at'] 
+        read_only_fields = ['id', 'created_at']
+
+class PostSearchSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
+    sub_forum_name = serializers.ReadOnlyField(source='sub_forum.name')
+    
+    class Meta:
+        model = Post
+        fields = ('id', 'title', 'content', 'author', 'sub_forum_name', 'created_at', 'updated_at')
+
+class SubForumSearchSerializer(serializers.ModelSerializer):
+    created_by = serializers.ReadOnlyField(source='created_by.username')
+    post_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SubForum
+        fields = ('id', 'name', 'description', 'created_by', 'created_at', 'post_count')
+    
+    def get_post_count(self, obj):
+        return obj.posts.count() 
