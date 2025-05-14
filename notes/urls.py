@@ -9,6 +9,7 @@ from .views.vote import VoteCreateAPIView
 from .views.ban import global_ban_user, subforum_ban_user, subforum_unban_user
 from .views.search import PostSearchView, SubForumSearchView
 from .views.user_search import UserSearchView
+from .views.moderator import assign_moderator, assign_admin, remove_moderator
 
 router = DefaultRouter()
 router.register(r'api/subforums', SubForumViewSet)
@@ -27,4 +28,7 @@ urlpatterns = [
     path('api/search/posts/', PostSearchView.as_view(), name='post-search'),
     path('api/search/subforums/', SubForumSearchView.as_view(), name='subforum-search'),
     path('api/search/users/', UserSearchView.as_view(), name='user-search'),
+    path('api/subforums/<int:subforum_id>/assign-moderator/', assign_moderator, name='assign-moderator'),
+    path('api/subforums/<int:subforum_id>/assign-admin/', assign_admin, name='assign-admin'),
+    path('api/subforums/<int:subforum_id>/remove-moderator/', remove_moderator, name='remove-moderator'),
 ] 
