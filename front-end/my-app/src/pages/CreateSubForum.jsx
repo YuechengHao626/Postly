@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const CreateSubForum = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -18,11 +18,18 @@ const CreateSubForum = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // 当用户开始输入时清除对应字段的错误
+    if (errors[e.target.name]) {
+      setErrors(prev => ({
+        ...prev,
+        [e.target.name]: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrors({});
 
     try {
       const response = await fetch('/api/subforums/', {
@@ -38,16 +45,32 @@ const CreateSubForum = () => {
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to create sub-forum');
+        // 处理不同类型的错误
+        if (response.status === 400) {
+          // 验证错误
+          if (typeof data === 'object') {
+            setErrors(data);
+          } else {
+            setErrors({ general: 'Failed to create sub-forum' });
+          }
+          // 特别处理名称已存在的错误
+          if (data.name && data.name.includes('already exists')) {
+            setErrors({ name: 'A community with this name already exists' });
+          }
+        } else {
+          // 其他错误
+          setErrors({ general: data.error || 'An error occurred while creating the community' });
+        }
+        return;
       }
 
       // 创建成功后跳转到新创建的子论坛
-      const newSubForum = await response.json();
-      navigate(`/subforum/${newSubForum.id}`);
+      navigate(`/subforum/${data.id}`);
     } catch (err) {
-      setError(err.message);
+      setErrors({ general: 'Network error occurred. Please try again.' });
     }
   };
 
@@ -83,9 +106,9 @@ const CreateSubForum = () => {
             Use this form to create a new community. Fields marked with asterisk are required.
           </p>
 
-          {error && (
+          {errors.general && (
             <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <span className="block sm:inline">{error}</span>
+              <span className="block sm:inline">{errors.general}</span>
             </div>
           )}
 
@@ -107,12 +130,18 @@ const CreateSubForum = () => {
                 required
                 placeholder="communityname"
                 aria-required="true"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className={`flex-1 px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                  errors.name ? 'border-red-500' : ''
+                }`}
               />
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              Community names cannot be changed once created.
-            </p>
+            {errors.name ? (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            ) : (
+              <p className="mt-1 text-sm text-gray-500">
+                Community names cannot be changed once created.
+              </p>
+            )}
           </div>
 
           {/* Description */}
@@ -128,9 +157,14 @@ const CreateSubForum = () => {
               rows="3"
               required
               aria-required="true"
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className={`mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                errors.description ? 'border-red-500' : ''
+              }`}
               placeholder="Briefly describe what this community is about"
             />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           {/* Rules */}
@@ -144,12 +178,18 @@ const CreateSubForum = () => {
               value={formData.rules}
               onChange={handleChange}
               rows="4"
-              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className={`mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                errors.rules ? 'border-red-500' : ''
+              }`}
               placeholder="Add community guidelines (supports markdown)"
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Clear guidelines help maintain a healthy community.
-            </p>
+            {errors.rules ? (
+              <p className="mt-1 text-sm text-red-600">{errors.rules}</p>
+            ) : (
+              <p className="mt-1 text-sm text-gray-500">
+                Clear guidelines help maintain a healthy community.
+              </p>
+            )}
           </div>
 
           {/* Submit */}

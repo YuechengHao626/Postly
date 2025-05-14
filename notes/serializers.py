@@ -34,11 +34,18 @@ class SubForumSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
+    sub_forum = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'format', 'author', 'created_at', 'updated_at')
+        fields = ('id', 'title', 'content', 'format', 'author', 'sub_forum', 'created_at', 'updated_at')
         read_only_fields = ('author', 'created_at', 'updated_at')
+    
+    def get_sub_forum(self, obj):
+        return {
+            'id': obj.sub_forum.id,
+            'name': obj.sub_forum.name
+        }
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')

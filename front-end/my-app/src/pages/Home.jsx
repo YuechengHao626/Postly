@@ -20,6 +20,10 @@ const Home = () => {
     }
   };
 
+  const handleBrowseAll = () => {
+    navigate('/subforums');
+  };
+
   return (
     <>
       {/* Navbar */}
@@ -92,6 +96,7 @@ const Home = () => {
         <div className="flex flex-col gap-4 w-64" aria-describedby="hero-desc">
           <button
             type="button"
+            onClick={handleBrowseAll}
             className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
             aria-label="Browse all available communities"
           >
