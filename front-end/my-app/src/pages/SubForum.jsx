@@ -193,13 +193,19 @@ const SubForum = () => {
                     <span>Posted by {post.author}</span>
                     <span>•</span>
                     <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                    <Link
-                      to={`/post/${post.id}`}
-                      className="flex items-center gap-1 text-gray-500 hover:text-blue-600"
-                    >
-                      <span>💬</span>
-                      <span>{post.comment_count || 0}</span>
-                    </Link>
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1 text-gray-500">
+                        <span>👍</span>
+                        <span>0</span>
+                      </span>
+                      <Link
+                        to={`/post/${post.id}`}
+                        className="flex items-center gap-1 text-gray-500 hover:text-blue-600"
+                      >
+                        <span>💬</span>
+                        <span>{post.comment_count || 0}</span>
+                      </Link>
+                    </div>
                   </div>
                   {post.tags && post.tags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">

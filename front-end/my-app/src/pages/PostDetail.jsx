@@ -83,6 +83,12 @@ const PostDetail = () => {
                   </Link>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+                  <span>👍</span>
+                  <span>0</span>
+                </span>
+              </div>
             </div>
           </header>
 
