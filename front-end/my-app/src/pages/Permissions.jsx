@@ -82,9 +82,13 @@ const Permissions = () => {
           setCurrentUser(userData);
           await updateUserInfo();
 
-          // 如果是子论坛管理员，获取其管理的论坛列表
-          if (userData.role === 'subforum_admin') {
-            const subforumsResponse = await fetch('/api/moderator/my-subforums/', {
+          // 如果是子论坛管理员或超级管理员，获取论坛列表
+          if (userData.role === 'subforum_admin' || userData.role === 'super_admin') {
+            const endpoint = userData.role === 'super_admin' 
+              ? '/api/subforums/' 
+              : '/api/moderator/my-subforums/';
+              
+            const subforumsResponse = await fetch(endpoint, {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
               }
@@ -426,10 +430,12 @@ const Permissions = () => {
         </section>
 
         {/* Managed Subforums Section */}
-        {currentUser?.role === 'subforum_admin' && managedSubforums.length > 0 && (
+        {(currentUser?.role === 'subforum_admin' || currentUser?.role === 'super_admin') && managedSubforums.length > 0 && (
           <section className="bg-white rounded-xl shadow p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Your Managed Sub-forums</h2>
+              <h2 className="text-lg font-semibold">
+                {currentUser?.role === 'super_admin' ? 'All Sub-forums' : 'Your Managed Sub-forums'}
+              </h2>
               <span className="text-sm text-gray-500">
                 Click on a forum to view details
               </span>
@@ -560,29 +566,11 @@ const Permissions = () => {
                         required
                       >
                         <option value="">Select a sub-forum</option>
-                        {activeTab === 'assign' ? (
-                          currentUser?.role === 'super_admin' ? (
-                            searchResults
-                              .filter(sf => sf.type === 'subforum')
-                              .map(sf => (
-                                <option key={sf.id} value={sf.id}>
-                                  {sf.name}
-                                </option>
-                              ))
-                          ) : (
-                            managedSubforums.map(sf => (
-                              <option key={sf.id} value={sf.id}>
-                                {sf.name}
-                              </option>
-                            ))
-                          )
-                        ) : (
-                          managedSubforums.map(sf => (
-                            <option key={sf.id} value={sf.id}>
-                              {sf.name}
-                            </option>
-                          ))
-                        )}
+                        {managedSubforums.map(sf => (
+                          <option key={sf.id} value={sf.id}>
+                            {sf.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
