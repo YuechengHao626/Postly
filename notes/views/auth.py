@@ -78,4 +78,21 @@ class UserLogoutView(APIView):
             return Response(
                 {"error": "Invalid request"},
                 status=status.HTTP_400_BAD_REQUEST
-            ) 
+            )
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        获取当前登录用户的详细信息
+        """
+        user = request.user
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': user.role,
+            'created_at': user.created_at.astimezone().isoformat(),  # 转换为本地时间
+            'is_banned': user.is_banned,
+        }) 

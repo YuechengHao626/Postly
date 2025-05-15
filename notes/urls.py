@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views.auth import UserRegistrationView, UserLoginView, UserLogoutView
+from .views.auth import UserRegistrationView, UserLoginView, UserLogoutView, UserDetailView
 from .views.forum import SubForumViewSet
 from .views.post import PostViewSet
 from .views.comment import CommentViewSet
@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/auth/login/', UserLoginView.as_view(), name='login'),
     path('api/auth/logout/', UserLogoutView.as_view(), name='logout'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/user/detail/', UserDetailView.as_view(), name='user-detail'),
     path('api/votes/', VoteCreateAPIView.as_view(), name='vote-create'),
     path('api/admin/ban/', global_ban_user, name='global-ban-user'),
     path('api/moderator/ban/', subforum_ban_user, name='subforum-ban-user'),

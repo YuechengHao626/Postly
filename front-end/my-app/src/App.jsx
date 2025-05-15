@@ -8,6 +8,8 @@ import SubForum from './pages/SubForum';
 import SubForumList from './pages/SubForumList';
 import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
+import Profile from './pages/Profile';
+import EditPost from './pages/EditPost';
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/subforums" element={<SubForumList />} />
           <Route path="/subforum/:id/create-post" element={<CreatePost />} />
           <Route path="/post/:id" element={<PostDetail />} />
+          <Route path="/post/:id/edit" element={<EditPost />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Router>
     </AuthProvider>

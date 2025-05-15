@@ -50,11 +50,22 @@ class PostSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
     reply_to_user = serializers.ReadOnlyField(source='reply_to_user.username', allow_null=True)
+    post = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'content', 'author', 'reply_to_user', 'created_at')
+        fields = ('id', 'content', 'author', 'reply_to_user', 'post', 'created_at')
         read_only_fields = ('author', 'created_at')
+
+    def get_post(self, obj):
+        return {
+            'id': obj.post.id,
+            'title': obj.post.title,
+            'sub_forum': {
+                'id': obj.post.sub_forum.id,
+                'name': obj.post.sub_forum.name
+            }
+        }
 
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:

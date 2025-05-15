@@ -13,10 +13,10 @@ class PostViewSet(viewsets.ModelViewSet):
     """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    http_method_names = ['get', 'post']  # 只允许 GET 和 POST 方法
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']  # 允许编辑和删除方法
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [AllowAny]
@@ -55,6 +55,34 @@ class PostViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             sub_forum=subforum
         )
+
+    def perform_update(self, serializer):
+        # 检查用户是否是帖子作者
+        post = self.get_object()
+        if post.author != self.request.user:
+            raise PermissionDenied('You can only edit your own posts.')
+            
+        # 检查用户是否被全局封禁
+        if self.request.user.is_banned:
+            raise PermissionDenied('You are banned from posting.')
+            
+        # 检查用户是否被子论坛封禁
+        subforum_ban = SubForumBan.objects.filter(
+            user=self.request.user,
+            subforum=post.sub_forum,
+            is_active=True
+        ).first()
+        
+        if subforum_ban:
+            raise PermissionDenied('You are banned from posting in this subforum.')
+        
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # 检查用户是否是帖子作者
+        if instance.author != self.request.user:
+            raise PermissionDenied('You can only delete your own posts.')
+        instance.delete()
 
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):
