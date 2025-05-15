@@ -7,7 +7,7 @@ import BackButton from '../components/BackButton';
 
 const PostDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, updateUserInfo } = useAuth();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,15 +15,31 @@ const PostDetail = () => {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    fetchPost();
-  }, [id, user]);
+    const loadData = async () => {
+      setLoading(true);
+      // 确保用户信息是最新的
+      try {
+        await updateUserInfo();
+      } catch (err) {
+        console.error('Error updating user info:', err);
+      }
+      await fetchPost();
+      setLoading(false);
+    };
+
+    if (user) {
+      loadData();
+    }
+  }, [id, user?.username]); // 只在 id 和 username 变化时重新加载
 
   const fetchPost = async () => {
     if (!user) return;
     
     try {
-      console.log('Fetching post with headers:', {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      console.log('Current user info:', {
+        username: user.username,
+        role: user.role,
+        token: localStorage.getItem('access_token')
       });
       
       const response = await fetch(`/api/posts/${id}/`, {
@@ -38,25 +54,19 @@ const PostDetail = () => {
       }
 
       const data = await response.json();
-      console.log('Received post data:', data);
+      console.log('Received post data:', {
+        id: data.id,
+        title: data.title,
+        author: data.author,
+        subForum: data.sub_forum,
+        isModerator: data.sub_forum.is_moderator
+      });
       setPost(data);
     } catch (err) {
       console.error('Error fetching post:', err);
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!user) return;
-
-    const refreshInterval = setInterval(() => {
-      fetchPost();
-    }, 5000);
-
-    return () => clearInterval(refreshInterval);
-  }, [user, id]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
@@ -87,23 +97,30 @@ const PostDetail = () => {
 
   // 检查用户是否有权限编辑/删除帖子
   const canModifyPost = () => {
-    if (!user || !post) return false;
+    if (!user || !post) {
+      console.log('No user or post data available');
+      return false;
+    }
     
-    console.log('Checking permissions:', {
+    console.log('Checking post permissions:', {
       user: {
         username: user.username,
         role: user.role
       },
       post: {
+        id: post.id,
         author: post.author,
-        subForum: post.sub_forum,
-        isModerator: post.sub_forum.is_moderator
+        subForum: {
+          id: post.sub_forum.id,
+          name: post.sub_forum.name,
+          isModerator: post.sub_forum.is_moderator
+        }
       }
     });
     
     // 作者可以修改
     if (post.author === user.username) {
-      console.log('User is author');
+      console.log('User is post author');
       return true;
     }
     
@@ -114,8 +131,17 @@ const PostDetail = () => {
     }
     
     // 子论坛管理员和版主可以修改其管理的子论坛中的帖子
-    if ((user.role === 'subforum_admin' || user.role === 'moderator') && 
-        post.sub_forum.is_moderator) {
+    const hasModeratorRole = user.role === 'subforum_admin' || user.role === 'moderator';
+    const hasModeratorPermission = post.sub_forum.is_moderator;
+    
+    console.log('Moderator check:', {
+      hasModeratorRole,
+      hasModeratorPermission,
+      userRole: user.role,
+      isModerator: post.sub_forum.is_moderator
+    });
+
+    if (hasModeratorRole && hasModeratorPermission) {
       console.log('User is moderator/admin and has permission');
       return true;
     }

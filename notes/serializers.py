@@ -56,6 +56,8 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ('author', 'created_at', 'updated_at', 'comment_count')
     
     def get_sub_forum(self, obj):
+        from .models import ModeratorAssignment  # 导入 ModeratorAssignment 模型
+        
         # 获取当前用户
         request = self.context.get('request')
         user = request.user if request and hasattr(request, 'user') else None
@@ -63,16 +65,31 @@ class PostSerializer(serializers.ModelSerializer):
         # 检查用户是否是这个子论坛的版主
         is_moderator = False
         if user and user.is_authenticated:
-            is_moderator = ModeratorAssignment.objects.filter(
-                user=user,
-                sub_forum=obj.sub_forum
-            ).exists()
+            # 检查是否是超级管理员
+            if user.role == 'super_admin':
+                is_moderator = True
+            else:
+                # 检查是否是版主或子论坛管理员
+                moderator_assignment = ModeratorAssignment.objects.filter(
+                    user=user,
+                    sub_forum=obj.sub_forum
+                ).first()
+                
+                is_moderator = bool(moderator_assignment)
 
-        return {
+                print(f"Moderator check for user {user.username} in subforum {obj.sub_forum.name}:")
+                print(f"- User role: {user.role}")
+                print(f"- Has moderator assignment: {bool(moderator_assignment)}")
+                print(f"- Final is_moderator value: {is_moderator}")
+
+        result = {
             'id': obj.sub_forum.id,
             'name': obj.sub_forum.name,
             'is_moderator': is_moderator
         }
+        
+        print(f"Returning subforum data: {result}")
+        return result
     
     def get_comment_count(self, obj):
         return obj.comments.count()
