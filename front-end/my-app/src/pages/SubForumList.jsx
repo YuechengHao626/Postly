@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BackButton from '../components/BackButton';
 
 const SubForumList = () => {
   const [subforums, setSubforums] = useState([]);
@@ -51,7 +52,8 @@ const SubForumList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <main className="max-w-5xl mx-auto space-y-8">
+      <BackButton />
+      <main className="max-w-5xl mx-auto space-y-8 mt-12">
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Communities</h1>

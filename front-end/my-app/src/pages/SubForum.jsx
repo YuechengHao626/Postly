@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import BackButton from '../components/BackButton';
 
 const AdminModal = ({ isOpen, onClose, admins, moderators }) => {
   if (!isOpen) return null;
@@ -171,7 +172,8 @@ const SubForum = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <main className="max-w-5xl mx-auto space-y-8" aria-label={`Sub-forum: ${subforum.name}`}>
+      <BackButton />
+      <main className="max-w-5xl mx-auto space-y-8 mt-12" aria-label={`Sub-forum: ${subforum.name}`}>
         {/* Sub-forum Header */}
         <section className="bg-white p-6 rounded-xl shadow" aria-labelledby="forum-title">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -288,7 +290,7 @@ const SubForum = () => {
                         className="flex items-center gap-1 text-gray-500 hover:text-blue-600"
                       >
                         <span>💬</span>
-                        <span>{post.comment_count || 0}</span>
+                        <span>{post.comment_count}</span>
                       </Link>
                     </div>
                   </div>

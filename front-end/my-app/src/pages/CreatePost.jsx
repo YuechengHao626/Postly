@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import BackButton from '../components/BackButton';
 
 const CreatePost = () => {
   const { id: subforumId } = useParams();
@@ -65,7 +66,8 @@ const CreatePost = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
-      <main className="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow space-y-6" aria-label="Post creation form">
+      <BackButton />
+      <main className="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow space-y-6 mt-12" aria-label="Post creation form">
         <h1 className="text-2xl font-bold text-gray-800">Create a New Post</h1>
 
         {error && (

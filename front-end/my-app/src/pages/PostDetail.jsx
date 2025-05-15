@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CommentSection from '../components/CommentSection';
 import ReactMarkdown from 'react-markdown';
+import BackButton from '../components/BackButton';
 
 const PostDetail = () => {
   const { id } = useParams();
@@ -118,7 +119,8 @@ const PostDetail = () => {
           {toast.message}
         </div>
       )}
-      <main className="max-w-4xl mx-auto space-y-6">
+      <BackButton />
+      <main className="max-w-4xl mx-auto space-y-6 mt-12">
         {/* Post Content */}
         <article className="bg-white p-6 rounded-xl shadow">
           <header className="mb-4">

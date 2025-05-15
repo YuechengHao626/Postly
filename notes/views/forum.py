@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
+from django.db.models import Count
 from ..serializers import SubForumSerializer, PostSerializer, UserSerializer
 from ..models import SubForum, ModeratorAssignment, Post, User
 from ..permissions import IsNotBanned
@@ -108,6 +109,8 @@ class SubForumViewSet(viewsets.ModelViewSet):
         获取特定子论坛下的所有帖子
         """
         subforum = self.get_object()
-        posts = Post.objects.filter(sub_forum=subforum).order_by('-created_at')
+        posts = Post.objects.filter(sub_forum=subforum).annotate(
+            comment_count=Count('comments')
+        ).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data) 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -360,19 +361,6 @@ const Permissions = () => {
         />
       )}
 
-      <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold">Postly Admin Dashboard</h1>
-          <nav className="hidden md:flex gap-4 text-sm text-blue-600">
-            <a href="/" className="hover:underline">🏠 Forum Home</a>
-            <a href="/profile" className="hover:underline">👤 My Profile</a>
-          </nav>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-sm ${roleColors[currentUser?.role]} bg-opacity-10 bg-current`}>
-          {roleDisplayNames[currentUser?.role] || 'Guest'}
-        </span>
-      </header>
-
       <main className="max-w-7xl mx-auto p-6 space-y-12">
         {/* Permissions Matrix Section */}
         <section className="bg-white rounded-xl shadow p-6">
@@ -387,7 +375,8 @@ const Permissions = () => {
           </div>
           <p className="text-sm text-gray-500 mb-4">
             Role hierarchy: <strong>Super Admin &gt; Sub-forum Admin &gt; Moderator &gt; Regular User</strong>.<br />
-            Lower roles cannot ban or modify higher roles, even if granted moderation rights.
+            Lower roles cannot ban or modify higher roles, even if granted moderation rights.<br />
+            Note: Sub-forum Admins can delete sub-forums they created, but cannot delete other sub-forums.
           </p>
 
           <div className="overflow-x-auto mb-6">

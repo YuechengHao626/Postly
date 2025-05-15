@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BackButton from '../components/BackButton';
 
 const CreateSubForum = () => {
   const navigate = useNavigate();
@@ -114,7 +115,8 @@ const CreateSubForum = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <main className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6" aria-label="Sub-forum creation">
+      <BackButton />
+      <main className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6 mt-12" aria-label="Sub-forum creation">
         {/* Title */}
         <div className="border-b pb-4">
           <h2 id="form-title" className="text-2xl font-bold text-gray-900">Create a New Community</h2>

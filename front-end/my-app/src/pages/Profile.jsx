@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BackButton from '../components/BackButton';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -102,24 +103,28 @@ const Profile = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen p-6 text-gray-800">
-      <main className="max-w-5xl mx-auto space-y-8" aria-label={`User Dashboard for ${user.username}`}>
+      <BackButton />
+      <main className="max-w-5xl mx-auto space-y-8 mt-12" aria-label={`User Dashboard for ${user.username}`}>
         {/* Profile Header */}
-        <section className="bg-white p-6 rounded-xl shadow flex flex-col md:flex-row gap-6 items-center md:items-start" aria-labelledby="profile-heading">
-          <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`} alt="User avatar" className="rounded-full w-20 h-20" />
-          <div className="flex-1 space-y-2">
-            <h2 id="profile-heading" className="text-2xl font-bold">u/{userDetail?.username}</h2>
-            <p className="text-sm text-gray-600">Email: {userDetail?.email}</p>
-            <p className="text-sm text-gray-600">Joined: {new Date(userDetail?.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}</p>
-            <p className="text-sm text-gray-600">📝 {posts.length} Posts • 💬 {comments.length} Comments</p>
-          </div>
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-            <Link
-              to="/permissions"
-              className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-              aria-label="Go to Role and Permissions Matrix"
-            >
-              Permissions Matrix
-            </Link>
+        <section className="bg-white p-6 rounded-xl shadow" aria-labelledby="profile-heading">
+          <h2 id="profile-heading" className="text-2xl font-bold mb-4">Profile</h2>
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`} alt="User avatar" className="rounded-full w-20 h-20" />
+            <div className="flex-1 space-y-2 text-center md:text-left">
+              <h3 className="text-xl font-semibold">u/{userDetail?.username}</h3>
+              <p className="text-sm text-gray-600">Email: {userDetail?.email}</p>
+              <p className="text-sm text-gray-600">Joined: {new Date(userDetail?.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}</p>
+              <p className="text-sm text-gray-600">📝 {posts.length} Posts • 💬 {comments.length} Comments</p>
+            </div>
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+              <Link
+                to="/permissions"
+                className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                aria-label="Go to Role and Permissions Matrix"
+              >
+                Permissions Matrix
+              </Link>
+            </div>
           </div>
         </section>
 

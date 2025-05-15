@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import BackButton from '../components/BackButton';
 
 const EditPost = () => {
   const { id } = useParams();
@@ -99,7 +100,8 @@ const EditPost = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <main className="max-w-4xl mx-auto">
+      <BackButton />
+      <main className="max-w-4xl mx-auto mt-12">
         <div className="bg-white rounded-xl shadow p-6">
           <h1 className="text-2xl font-bold mb-6">Edit Post</h1>
           

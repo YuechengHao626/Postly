@@ -12,25 +12,28 @@ import Profile from './pages/Profile';
 import EditPost from './pages/EditPost';
 import Permissions from './pages/Permissions';
 import UserManagement from './pages/UserManagement';
+import Header from './components/Header';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/create-subforum" element={<CreateSubForum />} />
-          <Route path="/subforum/:id" element={<SubForum />} />
-          <Route path="/subforums" element={<SubForumList />} />
-          <Route path="/subforum/:id/create-post" element={<CreatePost />} />
-          <Route path="/post/:id" element={<PostDetail />} />
-          <Route path="/post/:id/edit" element={<EditPost />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/permissions" element={<Permissions />} />
-          <Route path="/user-management" element={<UserManagement />} />
-        </Routes>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/" element={<><Header /><Home /></>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/create-subforum" element={<><Header /><CreateSubForum /></>} />
+            <Route path="/subforum/:id" element={<><Header /><SubForum /></>} />
+            <Route path="/subforums" element={<><Header /><SubForumList /></>} />
+            <Route path="/subforum/:id/create-post" element={<><Header /><CreatePost /></>} />
+            <Route path="/post/:id" element={<><Header /><PostDetail /></>} />
+            <Route path="/post/:id/edit" element={<><Header /><EditPost /></>} />
+            <Route path="/profile" element={<><Header /><Profile /></>} />
+            <Route path="/permissions" element={<><Header /><Permissions /></>} />
+            <Route path="/user-management" element={<UserManagement />} />
+          </Routes>
+        </div>
       </Router>
     </AuthProvider>
   );
