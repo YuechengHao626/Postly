@@ -11,6 +11,21 @@ const Profile = () => {
   const [userDetail, setUserDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [managedSubforums, setManagedSubforums] = useState([]);
+
+  const roleDisplayNames = {
+    super_admin: 'Super Admin',
+    subforum_admin: 'Sub-forum Admin',
+    moderator: 'Moderator',
+    user: 'Regular User'
+  };
+
+  const roleColors = {
+    super_admin: 'text-red-600',
+    subforum_admin: 'text-blue-600',
+    moderator: 'text-green-600',
+    user: 'text-gray-600'
+  };
 
   useEffect(() => {
     if (!user) {
@@ -43,6 +58,19 @@ const Profile = () => {
         }
       });
 
+      // 如果是版主或管理员，获取管理的子论坛
+      let managedSubforumsData = [];
+      if (user.role !== 'user') {
+        const managedSubforumsResponse = await fetch('/api/moderator/my-subforums/', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        if (managedSubforumsResponse.ok) {
+          managedSubforumsData = await managedSubforumsResponse.json();
+        }
+      }
+
       if (!userDetailResponse.ok || !postsResponse.ok || !commentsResponse.ok) {
         throw new Error('Failed to fetch user content');
       }
@@ -54,6 +82,7 @@ const Profile = () => {
       setUserDetail(userDetailData);
       setPosts(postsData);
       setComments(commentsData);
+      setManagedSubforums(managedSubforumsData);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -115,6 +144,9 @@ const Profile = () => {
               <p className="text-sm text-gray-600">Email: {userDetail?.email}</p>
               <p className="text-sm text-gray-600">Joined: {new Date(userDetail?.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}</p>
               <p className="text-sm text-gray-600">📝 {posts.length} Posts • 💬 {comments.length} Comments</p>
+              <p className={`text-sm font-medium ${roleColors[userDetail?.role]}`}>
+                Role: {roleDisplayNames[userDetail?.role]}
+              </p>
             </div>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
               <Link
@@ -127,6 +159,32 @@ const Profile = () => {
             </div>
           </div>
         </section>
+
+        {/* Managed Sub-forums Section */}
+        {userDetail?.role !== 'user' && managedSubforums.length > 0 && (
+          <section className="bg-white p-6 rounded-xl shadow space-y-4" aria-labelledby="managed-forums-heading">
+            <h3 id="managed-forums-heading" className="text-lg font-semibold text-gray-800">
+              {userDetail?.role === 'super_admin' ? 'All Sub-forums' : 'Managed Sub-forums'}
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {managedSubforums.map(forum => (
+                <Link
+                  key={forum.id}
+                  to={`/subforum/${forum.id}`}
+                  className="block bg-gray-50 rounded-lg p-4 hover:shadow-md transition"
+                >
+                  <h4 className="font-medium text-gray-900">/{forum.name}</h4>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{forum.description}</p>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                    <span>📝 {forum.post_count || 0} posts</span>
+                    <span>•</span>
+                    <span>👥 {forum.moderator_count || 0} moderators</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* My Posts */}
         <section className="bg-white p-6 rounded-xl shadow space-y-4" aria-labelledby="myposts-heading">

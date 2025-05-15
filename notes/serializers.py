@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import User, SubForum, Post, Comment, Vote, SubForumBan
+from .models import User, SubForum, Post, Comment, Vote, SubForumBan, ModeratorAssignment
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -56,9 +56,22 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ('author', 'created_at', 'updated_at', 'comment_count')
     
     def get_sub_forum(self, obj):
+        # 获取当前用户
+        request = self.context.get('request')
+        user = request.user if request and hasattr(request, 'user') else None
+
+        # 检查用户是否是这个子论坛的版主
+        is_moderator = False
+        if user and user.is_authenticated:
+            is_moderator = ModeratorAssignment.objects.filter(
+                user=user,
+                sub_forum=obj.sub_forum
+            ).exists()
+
         return {
             'id': obj.sub_forum.id,
-            'name': obj.sub_forum.name
+            'name': obj.sub_forum.name,
+            'is_moderator': is_moderator
         }
     
     def get_comment_count(self, obj):

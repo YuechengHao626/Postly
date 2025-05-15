@@ -16,14 +16,20 @@ const PostDetail = () => {
 
   useEffect(() => {
     fetchPost();
-  }, [id]);
+  }, [id, user]);
 
   const fetchPost = async () => {
+    if (!user) return;
+    
     try {
+      console.log('Fetching post with headers:', {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      });
+      
       const response = await fetch(`/api/posts/${id}/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': user ? `Bearer ${localStorage.getItem('access_token')}` : ''
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         }
       });
 
@@ -32,13 +38,25 @@ const PostDetail = () => {
       }
 
       const data = await response.json();
+      console.log('Received post data:', data);
       setPost(data);
     } catch (err) {
+      console.error('Error fetching post:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+
+    const refreshInterval = setInterval(() => {
+      fetchPost();
+    }, 5000);
+
+    return () => clearInterval(refreshInterval);
+  }, [user, id]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
@@ -71,18 +89,38 @@ const PostDetail = () => {
   const canModifyPost = () => {
     if (!user || !post) return false;
     
+    console.log('Checking permissions:', {
+      user: {
+        username: user.username,
+        role: user.role
+      },
+      post: {
+        author: post.author,
+        subForum: post.sub_forum,
+        isModerator: post.sub_forum.is_moderator
+      }
+    });
+    
     // 作者可以修改
-    if (post.author === user.username) return true;
-    
-    // 超级管理员可以修改任何帖子
-    if (user.role === 'super_admin') return true;
-    
-    // 子论坛管理员和版主可以修改其管理的子论坛中的帖子
-    if ((user.role === 'subforum_admin' || user.role === 'moderator') && 
-        post.sub_forum.moderators?.includes(user.username)) {
+    if (post.author === user.username) {
+      console.log('User is author');
       return true;
     }
     
+    // 超级管理员可以修改任何帖子
+    if (user.role === 'super_admin') {
+      console.log('User is super admin');
+      return true;
+    }
+    
+    // 子论坛管理员和版主可以修改其管理的子论坛中的帖子
+    if ((user.role === 'subforum_admin' || user.role === 'moderator') && 
+        post.sub_forum.is_moderator) {
+      console.log('User is moderator/admin and has permission');
+      return true;
+    }
+    
+    console.log('User does not have permission');
     return false;
   };
 

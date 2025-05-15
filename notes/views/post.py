@@ -15,6 +15,13 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']  # 允许编辑和删除方法
 
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = queryset.filter(author__username=author)
+        return queryset.select_related('author', 'sub_forum').order_by('-created_at')
+
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAuthenticated]

@@ -97,6 +97,11 @@ def assign_moderator(request, subforum_id):
         is_admin=False
     )
     
+    # 如果用户还不是版主或更高角色，将其角色更新为版主
+    if target_user.role == 'user':
+        target_user.role = 'moderator'
+        target_user.save()
+    
     return Response({"detail": "Moderator assigned successfully"})
 
 @api_view(['POST'])
@@ -148,6 +153,11 @@ def assign_admin(request, subforum_id):
         assigned_by=request.user,
         is_admin=True
     )
+    
+    # 如果用户还不是子论坛管理员或更高角色，将其角色更新为子论坛管理员
+    if target_user.role in ['user', 'moderator']:
+        target_user.role = 'subforum_admin'
+        target_user.save()
     
     return Response({"detail": "Subforum admin assigned successfully"})
 
@@ -202,5 +212,18 @@ def remove_moderator(request, subforum_id):
             status=status.HTTP_403_FORBIDDEN
         )
     
+    # 删除任命记录
     assignment.delete()
+    
+    # 检查用户是否还有其他版主或管理员职位
+    other_assignments = ModeratorAssignment.objects.filter(user=target_user)
+    if not other_assignments.exists():
+        # 如果没有其他职位，将角色恢复为普通用户
+        target_user.role = 'user'
+        target_user.save()
+    elif not other_assignments.filter(is_admin=True).exists() and target_user.role == 'subforum_admin':
+        # 如果没有其他管理员职位但还有版主职位，将角色降为版主
+        target_user.role = 'moderator'
+        target_user.save()
+    
     return Response({"detail": "Moderator removed successfully"}) 

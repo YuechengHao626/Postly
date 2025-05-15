@@ -13,6 +13,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'delete']  # 允许删除方法
 
+    def get_queryset(self):
+        queryset = Comment.objects.all()
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = queryset.filter(author__username=author)
+        return queryset.select_related('author', 'post', 'post__sub_forum', 'reply_to_user').order_by('-created_at')
+
     def get_permissions(self):
         if self.action in ['create', 'destroy']:
             permission_classes = [IsAuthenticated]
