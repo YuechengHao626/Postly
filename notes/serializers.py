@@ -26,11 +26,13 @@ class UserLoginSerializer(serializers.Serializer):
 
 class SubForumSerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source='created_by.username')
+    moderator_count = serializers.IntegerField(read_only=True)
+    post_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = SubForum
-        fields = ('id', 'name', 'description', 'rules', 'created_by', 'created_at')
-        read_only_fields = ('created_by', 'created_at')
+        fields = ('id', 'name', 'description', 'rules', 'created_by', 'created_at', 'moderator_count', 'post_count')
+        read_only_fields = ('created_by', 'created_at', 'moderator_count', 'post_count')
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')

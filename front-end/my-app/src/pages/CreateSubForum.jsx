@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 const CreateSubForum = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUserInfo } = useAuth();
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: '',
@@ -60,6 +60,8 @@ const CreateSubForum = () => {
           if (data.name && data.name.includes('already exists')) {
             setErrors({ name: 'A community with this name already exists' });
           }
+        } else if (response.status === 403) {
+          setErrors({ general: 'You do not have permission to create a sub-forum' });
         } else {
           // 其他错误
           setErrors({ general: data.error || 'An error occurred while creating the community' });
@@ -67,8 +69,28 @@ const CreateSubForum = () => {
         return;
       }
 
-      // 创建成功后跳转到新创建的子论坛
-      navigate(`/subforum/${data.id}`);
+      // 创建成功后，重新获取用户信息并等待完成
+      try {
+        await updateUserInfo();
+        console.log('User info updated successfully');
+        
+        // 添加一个小延迟以确保状态更新完成
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 再次获取用户信息以确保更新成功
+        await updateUserInfo();
+        
+        // 检查用户角色是否已更新
+        const currentUserInfo = localStorage.getItem('user_info');
+        console.log('Current user info after update:', currentUserInfo);
+        
+        // 创建成功后跳转到新创建的子论坛
+        navigate(`/subforum/${data.id}`);
+      } catch (error) {
+        console.error('Error updating user info:', error);
+        // 即使更新用户信息失败，仍然跳转到新创建的子论坛
+        navigate(`/subforum/${data.id}`);
+      }
     } catch (err) {
       setErrors({ general: 'Network error occurred. Please try again.' });
     }
@@ -203,8 +225,7 @@ const CreateSubForum = () => {
             </button>
             <button
               type="submit"
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label="Submit form to create new community"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Create Community
             </button>

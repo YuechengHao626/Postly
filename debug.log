@@ -1,0 +1,15 @@
+INFO 2025-05-15 05:30:54,744 forum Starting subforum creation process
+INFO 2025-05-15 05:30:54,746 forum Creating subforum for user HaroldHAO (current role: subforum_admin)
+INFO 2025-05-15 05:30:54,751 forum Subforum created: saaaaaaa
+INFO 2025-05-15 05:30:54,754 forum ModeratorAssignment created for user HaroldHAO
+INFO 2025-05-15 05:30:54,755 forum User role before sending response: subforum_admin
+INFO 2025-05-15 05:35:11,453 forum Starting subforum creation process
+INFO 2025-05-15 05:35:11,462 forum Creating subforum for user HaroldHAO (current role: subforum_admin)
+INFO 2025-05-15 05:35:11,468 forum Subforum created: ppppp
+INFO 2025-05-15 05:35:11,471 forum ModeratorAssignment created for user HaroldHAO
+INFO 2025-05-15 05:35:11,473 forum User role before sending response: subforum_admin
+INFO 2025-05-15 07:12:47,945 forum Starting subforum creation process
+INFO 2025-05-15 07:12:47,948 forum Creating subforum for user HaroldHAO (current role: subforum_admin)
+INFO 2025-05-15 07:12:47,952 forum Subforum created: sd
+INFO 2025-05-15 07:12:47,956 forum ModeratorAssignment created for user HaroldHAO
+INFO 2025-05-15 07:12:47,958 forum User role before sending response: subforum_admin

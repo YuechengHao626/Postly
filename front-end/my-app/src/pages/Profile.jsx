@@ -112,6 +112,15 @@ const Profile = () => {
             <p className="text-sm text-gray-600">Joined: {new Date(userDetail?.created_at).toLocaleString('en-AU', { timeZone: 'Australia/Brisbane' })}</p>
             <p className="text-sm text-gray-600">📝 {posts.length} Posts • 💬 {comments.length} Comments</p>
           </div>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+            <Link
+              to="/permissions"
+              className="text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              aria-label="Go to Role and Permissions Matrix"
+            >
+              Permissions Matrix
+            </Link>
+          </div>
         </section>
 
         {/* My Posts */}

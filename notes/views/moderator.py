@@ -3,7 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
 from ..models import User, SubForum, ModeratorAssignment
+from ..serializers import SubForumSerializer
 
 def check_admin_permission(user, subforum):
     """
@@ -20,6 +22,28 @@ def check_admin_permission(user, subforum):
     ).first()
     
     return bool(moderator), False
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_subforums(request):
+    """
+    获取当前用户管理的子论坛列表
+    - 超级管理员可以看到所有子论坛
+    - 子论坛管理员只能看到自己管理的子论坛
+    """
+    if request.user.role == 'super_admin':
+        subforums = SubForum.objects.all()
+    else:
+        subforums = SubForum.objects.filter(
+            moderator_assignments__user=request.user,
+            moderator_assignments__is_admin=True
+        ).distinct().annotate(
+            moderator_count=Count('moderator_assignments'),
+            post_count=Count('posts')
+        )
+    
+    serializer = SubForumSerializer(subforums, many=True)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
