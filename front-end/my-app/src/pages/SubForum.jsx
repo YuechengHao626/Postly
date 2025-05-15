@@ -3,6 +3,60 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
 
+const AdminModal = ({ isOpen, onClose, admins, moderators }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Admin Team</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          {/* Sub-forum Admins */}
+          <div>
+            <h4 className="font-medium text-blue-600 mb-2">Sub-forum Admins</h4>
+            {admins?.length > 0 ? (
+              <ul className="space-y-2">
+                {admins.map(admin => (
+                  <li key={admin.id} className="flex items-center gap-2">
+                    <span className="text-gray-900">{admin.username}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">No sub-forum admins</p>
+            )}
+          </div>
+
+          {/* Moderators */}
+          <div>
+            <h4 className="font-medium text-green-600 mb-2">Moderators</h4>
+            {moderators?.length > 0 ? (
+              <ul className="space-y-2">
+                {moderators.map(mod => (
+                  <li key={mod.id} className="flex items-center gap-2">
+                    <span className="text-gray-900">{mod.username}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">No moderators</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SubForum = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,6 +66,8 @@ const SubForum = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('recent');
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminTeam, setAdminTeam] = useState({ admins: [], moderators: [] });
 
   useEffect(() => {
     fetchSubforumAndPosts();
@@ -32,6 +88,18 @@ const SubForum = () => {
 
       const subforumData = await subforumResponse.json();
       setSubforum(subforumData);
+
+      // 获取管理团队信息
+      const adminTeamResponse = await fetch(`/api/subforums/${id}/admin-team/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (adminTeamResponse.ok) {
+        const adminTeamData = await adminTeamResponse.json();
+        setAdminTeam(adminTeamData);
+      }
 
       // 获取帖子列表
       const postsResponse = await fetch(`/api/subforums/${id}/posts/`, {
@@ -117,26 +185,43 @@ const SubForum = () => {
                 📝 {posts.length} Posts
               </p>
             </div>
-            {user && subforum.created_by === user.username && (
-              <div className="flex gap-3">
-                <Link
-                  to={`/subforum/${id}/edit`}
-                  className="border border-gray-300 px-4 py-2 rounded-md text-sm hover:bg-gray-100"
-                  aria-label="Edit this sub-forum"
-                >
-                  Edit Sub-forum
-                </Link>
-                <button
-                  onClick={handleDelete}
-                  className="border border-red-300 text-red-600 px-4 py-2 rounded-md text-sm hover:bg-red-50"
-                  aria-label="Delete this sub-forum"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsAdminModalOpen(true)}
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors"
+                aria-label="View admin team"
+              >
+                👥 Admin Team
+              </button>
+              {user && subforum.created_by === user.username && (
+                <>
+                  <Link
+                    to={`/subforum/${id}/edit`}
+                    className="border border-gray-300 px-4 py-2 rounded-md text-sm hover:bg-gray-100"
+                    aria-label="Edit this sub-forum"
+                  >
+                    Edit Sub-forum
+                  </Link>
+                  <button
+                    onClick={handleDelete}
+                    className="border border-red-300 text-red-600 px-4 py-2 rounded-md text-sm hover:bg-red-50"
+                    aria-label="Delete this sub-forum"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </section>
+
+        {/* Admin Modal */}
+        <AdminModal
+          isOpen={isAdminModalOpen}
+          onClose={() => setIsAdminModalOpen(false)}
+          admins={adminTeam.admins}
+          moderators={adminTeam.moderators}
+        />
 
         {/* Actions: Sort + Create Post */}
         <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-4" aria-label="Post actions">

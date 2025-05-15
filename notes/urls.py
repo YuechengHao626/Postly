@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views.auth import UserRegistrationView, UserLoginView, UserLogoutView, UserDetailView
-from .views.forum import SubForumViewSet
+from .views.forum import SubForumViewSet, get_admin_team
 from .views.post import PostViewSet
 from .views.comment import CommentViewSet
 from .views.vote import VoteCreateAPIView
@@ -34,4 +34,5 @@ urlpatterns = [
     path('api/subforums/<int:subforum_id>/assign-moderator/', assign_moderator, name='assign-moderator'),
     path('api/subforums/<int:subforum_id>/assign-admin/', assign_admin, name='assign-admin'),
     path('api/subforums/<int:subforum_id>/remove-moderator/', remove_moderator, name='remove-moderator'),
+    path('api/subforums/<int:subforum_id>/admin-team/', get_admin_team, name='admin-team'),
 ] 

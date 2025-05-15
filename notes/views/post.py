@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from ..serializers import PostSerializer, CommentSerializer
-from ..models import Post, SubForum, Comment, SubForumBan
+from ..models import Post, SubForum, Comment, SubForumBan, ModeratorAssignment
 
 class PostViewSet(viewsets.ModelViewSet):
     """
@@ -79,10 +79,29 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def perform_destroy(self, instance):
+        user = self.request.user
+
+        # 超级管理员可以删除任何帖子
+        if user.role == 'super_admin':
+            instance.delete()
+            return
+
         # 检查用户是否是帖子作者
-        if instance.author != self.request.user:
-            raise PermissionDenied('You can only delete your own posts.')
-        instance.delete()
+        if instance.author == user:
+            instance.delete()
+            return
+
+        # 检查用户是否是子论坛管理员或版主
+        moderator = ModeratorAssignment.objects.filter(
+            user=user,
+            sub_forum=instance.sub_forum
+        ).first()
+
+        if moderator:
+            instance.delete()
+            return
+
+        raise PermissionDenied('You do not have permission to delete this post.')
 
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):

@@ -1,13 +1,43 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-from ..serializers import SubForumSerializer, PostSerializer
+from ..serializers import SubForumSerializer, PostSerializer, UserSerializer
 from ..models import SubForum, ModeratorAssignment, Post, User
 from ..permissions import IsNotBanned
+from django.shortcuts import get_object_or_404
 import logging
 
 logger = logging.getLogger(__name__)
+
+@api_view(['GET'])
+def get_admin_team(request, subforum_id):
+    """
+    获取子论坛的管理团队信息
+    返回子论坛管理员和版主列表
+    """
+    subforum = get_object_or_404(SubForum, id=subforum_id)
+    
+    # 获取子论坛管理员
+    admins = User.objects.filter(
+        moderator_assignments__sub_forum=subforum,
+        moderator_assignments__is_admin=True
+    ).distinct()
+    
+    # 获取版主
+    moderators = User.objects.filter(
+        moderator_assignments__sub_forum=subforum,
+        moderator_assignments__is_admin=False
+    ).distinct()
+    
+    # 序列化用户信息
+    admin_serializer = UserSerializer(admins, many=True)
+    moderator_serializer = UserSerializer(moderators, many=True)
+    
+    return Response({
+        'admins': admin_serializer.data,
+        'moderators': moderator_serializer.data
+    })
 
 class SubForumViewSet(viewsets.ModelViewSet):
     """

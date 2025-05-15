@@ -34,13 +34,7 @@ const SubforumCard = ({ subforum }) => {
         </span>
       </div>
       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{subforum.description}</p>
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500">
-            <span className="font-medium">{subforum.moderator_count || 0}</span>
-            <span className="text-gray-400"> moderators</span>
-          </span>
-        </div>
+      <div className="flex items-center justify-end text-sm">
         <div className="flex items-center gap-2">
           <span className="text-gray-500">
             <span className="font-medium">{subforum.post_count || 0}</span>

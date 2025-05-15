@@ -9,6 +9,7 @@ const CommentSection = ({ postId }) => {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchComments();
@@ -43,6 +44,10 @@ const CommentSection = ({ postId }) => {
     setError(null);
 
     try {
+      const content = replyTo
+        ? `Reply to @${replyTo.username}: ${newComment}`
+        : newComment;
+
       const response = await fetch('/api/comments/', {
         method: 'POST',
         headers: {
@@ -51,7 +56,7 @@ const CommentSection = ({ postId }) => {
         },
         body: JSON.stringify({
           post_id: postId,
-          content: newComment,
+          content: content,
           reply_to_user_id: replyTo?.id
         })
       });
@@ -107,12 +112,74 @@ const CommentSection = ({ postId }) => {
     }
   };
 
+  const handleDelete = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/comments/${commentId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to delete comment');
+      }
+
+      // 从列表中移除被删除的评论
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+      setToast({
+        type: 'success',
+        message: 'Comment deleted successfully'
+      });
+    } catch (err) {
+      setToast({
+        type: 'error',
+        message: err.message
+      });
+    }
+  };
+
+  // 检查用户是否有权限删除评论
+  const canDeleteComment = (comment) => {
+    if (!user) return false;
+
+    // 评论作者可以删除自己的评论
+    if (comment.author === user.username) return true;
+
+    // 超级管理员可以删除任何评论
+    if (user.role === 'super_admin') return true;
+
+    // 子论坛管理员和版主可以删除其管理的子论坛中的评论
+    if ((user.role === 'subforum_admin' || user.role === 'moderator') && 
+        comment.post.sub_forum.moderators?.includes(user.username)) {
+      return true;
+    }
+
+    return false;
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading comments...</div>;
   }
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div
+          className={`mb-4 p-3 rounded-md ${
+            toast.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+          }`}
+          onClick={() => setToast(null)}
+        >
+          {toast.message}
+        </div>
+      )}
+
       <h2 className="text-xl font-semibold">Comments ({comments.length})</h2>
 
       {error && (
@@ -183,6 +250,15 @@ const CommentSection = ({ postId }) => {
                 )}
                 <p className="mt-2 text-gray-700">{comment.content}</p>
               </div>
+              {canDeleteComment(comment) && (
+                <button
+                  onClick={() => handleDelete(comment.id)}
+                  className="text-sm text-red-600 hover:text-red-800"
+                  title="Delete comment"
+                >
+                  Delete
+                </button>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-4">
               <button

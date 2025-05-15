@@ -3,7 +3,7 @@ from rest_framework import viewsets, serializers
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from ..serializers import CommentSerializer
-from ..models import Comment, Post, User, SubForumBan
+from ..models import Comment, Post, User, SubForumBan, ModeratorAssignment
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -11,10 +11,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post']  # 只允许 GET 和 POST 方法
+    http_method_names = ['get', 'post', 'delete']  # 允许删除方法
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'destroy']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [AllowAny]
@@ -60,4 +60,29 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             post=post,
             reply_to_user=reply_to_user
-        ) 
+        )
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+
+        # 超级管理员可以删除任何评论
+        if user.role == 'super_admin':
+            instance.delete()
+            return
+
+        # 检查用户是否是评论作者
+        if instance.author == user:
+            instance.delete()
+            return
+
+        # 检查用户是否是子论坛管理员或版主
+        moderator = ModeratorAssignment.objects.filter(
+            user=user,
+            sub_forum=instance.post.sub_forum
+        ).first()
+
+        if moderator:
+            instance.delete()
+            return
+
+        raise PermissionDenied('You do not have permission to delete this comment.') 
