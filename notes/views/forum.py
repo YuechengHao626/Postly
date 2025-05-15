@@ -90,6 +90,25 @@ class SubForumViewSet(viewsets.ModelViewSet):
                 delattr(self.request, '_cached_user')
             self.request.user = updated_user
 
+    def perform_update(self, serializer):
+        """
+        更新子论坛信息
+        - 只有创建者和超级管理员可以更新
+        """
+        subforum = self.get_object()
+        user = self.request.user
+
+        # 检查权限
+        if user.role != 'super_admin' and subforum.created_by != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('You do not have permission to update this subforum')
+
+        # 只允许更新 description 和 rules
+        if 'name' in serializer.validated_data:
+            serializer.validated_data.pop('name')
+        
+        serializer.save()
+
     def create(self, request, *args, **kwargs):
         logger.info("Starting subforum creation process")
         serializer = self.get_serializer(data=request.data)

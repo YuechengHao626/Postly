@@ -38,7 +38,12 @@ class SubForumSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubForum
         fields = ('id', 'name', 'description', 'rules', 'created_by', 'created_at', 'moderator_count', 'post_count')
-        read_only_fields = ('created_by', 'created_at', 'moderator_count', 'post_count')
+        read_only_fields = ('id', 'created_by', 'created_at', 'moderator_count', 'post_count')
+        extra_kwargs = {
+            'name': {'read_only': True},  # name 字段在更新时是只读的
+            'description': {'required': False, 'allow_blank': True},  # description 可以为空
+            'rules': {'required': False, 'allow_blank': True}  # rules 可以为空
+        }
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')

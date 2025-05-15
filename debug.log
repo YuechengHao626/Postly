@@ -13,3 +13,8 @@ INFO 2025-05-15 07:12:47,948 forum Creating subforum for user HaroldHAO (current
 INFO 2025-05-15 07:12:47,952 forum Subforum created: sd
 INFO 2025-05-15 07:12:47,956 forum ModeratorAssignment created for user HaroldHAO
 INFO 2025-05-15 07:12:47,958 forum User role before sending response: subforum_admin
+INFO 2025-05-15 10:10:33,364 forum Starting subforum creation process
+INFO 2025-05-15 10:10:33,370 forum Creating subforum for user Yuechenghao (current role: super_admin)
+INFO 2025-05-15 10:10:33,376 forum Subforum created: yangguang
+INFO 2025-05-15 10:10:33,381 forum ModeratorAssignment created for user Yuechenghao
+INFO 2025-05-15 10:10:33,382 forum User role before sending response: super_admin

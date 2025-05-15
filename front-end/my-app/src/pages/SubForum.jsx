@@ -195,21 +195,21 @@ const SubForum = () => {
               >
                 👥 Admin Team
               </button>
-              {user && subforum.created_by === user.username && (
+              {user && (subforum.created_by === user.username || user.role === 'super_admin') && (
                 <>
                   <Link
                     to={`/subforum/${id}/edit`}
-                    className="border border-gray-300 px-4 py-2 rounded-md text-sm hover:bg-gray-100"
-                    aria-label="Edit this sub-forum"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+                    aria-label="Edit community"
                   >
-                    Edit Sub-forum
+                    ✏️ Edit
                   </Link>
                   <button
                     onClick={handleDelete}
-                    className="border border-red-300 text-red-600 px-4 py-2 rounded-md text-sm hover:bg-red-50"
-                    aria-label="Delete this sub-forum"
+                    className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors"
+                    aria-label="Delete community"
                   >
-                    Delete
+                    🗑️ Delete
                   </button>
                 </>
               )}

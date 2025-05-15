@@ -10,6 +10,7 @@ import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
 import Profile from './pages/Profile';
 import EditPost from './pages/EditPost';
+import EditSubForum from './pages/EditSubForum';
 import Permissions from './pages/Permissions';
 import UserManagement from './pages/UserManagement';
 import Header from './components/Header';
@@ -25,6 +26,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/create-subforum" element={<><Header /><CreateSubForum /></>} />
             <Route path="/subforum/:id" element={<><Header /><SubForum /></>} />
+            <Route path="/subforum/:id/edit" element={<><Header /><EditSubForum /></>} />
             <Route path="/subforums" element={<><Header /><SubForumList /></>} />
             <Route path="/subforum/:id/create-post" element={<><Header /><CreatePost /></>} />
             <Route path="/post/:id" element={<><Header /><PostDetail /></>} />
