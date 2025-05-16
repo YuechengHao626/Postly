@@ -81,6 +81,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'posts': '100/hour',    # 发帖限制：每小时100次
+        'comments': '1000/hour'  # 评论限制：每小时1000次
+    }
 }
 
 SIMPLE_JWT = {

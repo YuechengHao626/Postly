@@ -12,6 +12,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'delete']  # 允许删除方法
+    throttle_scope = 'comments'  # 添加评论限流规则
 
     def get_queryset(self):
         queryset = Comment.objects.all()

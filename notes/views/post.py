@@ -14,6 +14,7 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']  # 允许编辑和删除方法
+    throttle_scope = 'posts'  # 添加发帖限流规则
 
     def get_queryset(self):
         queryset = Post.objects.all()
